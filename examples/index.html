@@ -13,6 +13,7 @@
         <div id="output">
 
         </div>
+        <div id="connectedbyvue" style="display:none;"><div id="buddies-target"></div></div>
         <script>
         function echo() {
             var output = '';
@@ -30,6 +31,17 @@
             // console.log(jwt_decode(AsmodeeNet.getAccessToken()));
             findMe('connect_bt').style.display = 'none';
             findMe('profile').style.display = 'block';
+            var tok = jwt_decode(AsmodeeNet.getAccessToken());
+            findMe('connectedbyvue').style.display = 'block';
+            if (typeof asnetbus != undefined) {
+               asnetbus.push('user-connected', {
+                   url: 'http://localhost:8008/main',
+                   token: AsmodeeNet.getAccessToken(),
+                   userId: tok.sub,
+                   expires: tok.exp,
+                   scopes: AsmodeeNet.getScopes()
+               });
+            }
         }
         function unsigned() {
             findMe('profile').style.display = 'none';
@@ -59,14 +71,34 @@
             });
         });
 
+        function asnetapiOnLoad() {
+            if (typeof asnetbus != undefined){asnetbus.init({env: 'development', lang: 'fr'});}
+        }
+        document.addEventListener('vue-init', function () {
+            console.log('vue init');
+            asnet_wc('#buddies-target', {
+                module: 'buddies-activities',
+                title: "L'activité de mes amis",
+                trans: {
+                    last_used: "Dernière utilisation",
+                    nobody: "Aucun de vos amis n'a encore joué à l'un de nos jeux."
+                },
+                width: 430
+            });
+        });
+        </script>
+        <script type="text/javascript" src="//localhost:8009/js/dist/front/asnetapi.manifest.js"></script>
+        <script type="text/javascript" src="//localhost:8009/js/dist/front/asnetapi.vendor.js"></script>
+        <script type="text/javascript" src="//localhost:8009/js/dist/front/asnetapi.main.js" onload="asnetapiOnLoad()"></script>
+        <script>
         AsmodeeNet.init({
             // Required parameters
-            client_id: 'studio-app', // 'openid-dow', //'openid-ffg', //'test_direct', //'openid-dow', 'asmoclub', //
-            redirect_uri: 'http://localhost:8080/?conok=1', // 'https://login.salesforce.com/services/authcallback/00D2000000099GxEAI/asmoclub', // 'https://community-dev.fantasyflightgames.com/oauth/callback',
+            client_id: 'test_direct', //'openid-ffg', //'test_direct', //'openid-dow', 'asmoclub', //
+            redirect_uri: 'http://localhost:8080/?cok=1', // 'https://login.salesforce.com/services/authcallback/00D2000000099GxEAI/asmoclub', // 'https://community-dev.fantasyflightgames.com/oauth/callback',
             cancel_uri: 'http://localhost:8080/?cancel=1', // only used by the touch mode on IS
             // Example of optional parameters
             base_is_host: 'http://localhost:8009/', // 'https://account.asmodee.net'
-            scope: 'studio+openid+email+profile',
+            scope: 'openid profile email address public private',
             response_type: 'code id_token token',
             display: 'page', // display type: 'page' 'touch' 'popup' 'iframe' (page by default)
 
@@ -88,5 +120,17 @@
             }
         }).discover();
         </script>
+        <style>
+        .asnet_comp_root {
+            position: fixed;
+            right: 10px;
+            top: 10px;
+        }
+        .asnet_comp_root .buddies-activity {
+            background-color: white;
+        }
+
+
+        </style>
     </body>
 </html>
